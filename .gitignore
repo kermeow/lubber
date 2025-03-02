@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+
+/dist/*
+
+.coverage
+.pytest_cache
+
+.DS_Store
+.idea/*
+.python-version
+.vscode/*
+
+.mypy_cache
+
+.venv
+/poetry.toml
