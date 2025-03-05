@@ -1,0 +1,12 @@
+# Generated with lubber
+
+[mod]
+id = "example"
+name = "example"
+description = ""
+category = ""
+author = "jayden"
+version = "0.1.0"
+
+[dependencies]
+sm64coopdx = ">=1.0.0"

@@ -1,0 +1,8 @@
+# Generated with lubber
+
+.lubber/
+dist/
+*.luac
+*.tex
+*.zip
+.luarc.json
