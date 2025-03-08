@@ -1,14 +1,7 @@
-import typer
-import os
-import subprocess
-import re
-import tomlkit
-import numpy
-import semver
-import shutil
 from pathlib import Path
+
+import typer
 from typing_extensions import Annotated
-from rich import print
 
 options = {"project": Path.cwd()}
 
@@ -57,5 +50,5 @@ def build(ctx: typer.Context):
 
 @app.callback()
 def main(project: Path = typer.Option(None, help="Specify the path of the project.")):
-    if project != None:
+    if project is not None:
         options["project"] = project.absolute()
