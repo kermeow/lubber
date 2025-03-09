@@ -104,11 +104,13 @@ def init(
 
     src_dir = state.project_path / project.directories.source
     src_dir.mkdir(parents=True, exist_ok=True)
-    (src_dir / "main.lua").write_text(
-        resources.read_text("lubber", "data/main.lua").format_map(
-            {"name": name, "desc": desc, "author": author}
+    main_lua_file = src_dir / "main.lua"
+    if not main_lua_file.is_file():
+        main_lua_file.write_text(
+            resources.read_text("lubber", "data/main.lua").format_map(
+                {"name": name, "desc": desc, "author": author}
+            )
         )
-    )
 
     (state.project_path / ".gitignore").write_text(
         resources.read_text("lubber", "data/gitignore.txt")
@@ -303,6 +305,14 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
 
     ordered_lua = []
     for path in src_dir.rglob("*.lua", case_sensitive=False):
+        if path.name == "main.lua":
+            main_lua_file = output_dir / "main.lua"
+            main_lua = ""
+            for line in path.read_text().splitlines(keepends=False):
+                if not line.startswith("--"):
+                    continue
+                main_lua += line + "\n"
+            main_lua_file.write_text(main_lua)
         rel_path = path.relative_to(src_dir)
         ordered_lua.append(rel_path)
 
