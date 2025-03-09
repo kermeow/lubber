@@ -10,6 +10,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from semver import Version
 from typing_extensions import Annotated
+import time
 
 from lubber.models.config import GlobalConfig
 from lubber.models.project import LockedDependency, LockFile, Project
@@ -21,6 +22,8 @@ from lubber.utils import get_username, is_exe, suggest_mod_id, validate_mod_id
 app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
+    pretty_exceptions_short=True,
+    pretty_exceptions_show_locals=False,
 )
 state = State()
 
@@ -148,6 +151,8 @@ def restore(ctx: typer.Context) -> bool:
 
     print(f"[blue]Restoring project in '{state.project_path_relative()}'...")
 
+    begin_at = time.clock_gettime_ns(time.CLOCK_REALTIME)
+
     cache_dir = state.project_path / ".lubber"
     libs_dir = cache_dir / "libs"
     libs_dir.mkdir(parents=True, exist_ok=True)
@@ -239,6 +244,13 @@ def restore(ctx: typer.Context) -> bool:
 
     lockfile.save(lockfile_file)
     project.save(project_file)
+
+    finish_at = time.clock_gettime_ns(time.CLOCK_REALTIME)
+
+    time_taken = finish_at - begin_at
+    time_taken_s = round(time_taken / 1_000_000) / 1000
+
+    print(f"[blue]'{project.mod.name}' restored in {time_taken_s}s.")
     return True
 
 
