@@ -379,6 +379,8 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
         (output_dir / "textures").mkdir(parents=True, exist_ok=True)
         for asset in textures_dir.rglob("*.png"):
             make_tex(asset, output_dir / "textures")
+        for asset in textures_dir.rglob("*.tex"):
+            copy2(asset, output_dir / "textures")
 
     levels_dir = assets_dir / "levels"
     if levels_dir.is_dir():
