@@ -4,7 +4,7 @@ import time
 from hashlib import md5
 from math import floor
 from pathlib import Path
-from shutil import copy2, make_archive, rmtree
+from shutil import copy2, copytree, make_archive, rmtree
 
 import typer
 from numpy import emath, sort
@@ -372,37 +372,49 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
     # Compile assets
     assets_dir = state.project_path / project.directories.assets
 
-    actors_dir = assets_dir / "actors"
-    if actors_dir.is_dir():
-        (output_dir / "actors").mkdir(parents=True, exist_ok=True)
-        for asset in actors_dir.rglob("*.(bin|col)"):
-            copy2(asset, output_dir / "actors")
+    if release:
+        actors_dir = assets_dir / "actors"
+        if actors_dir.is_dir():
+            (output_dir / "actors").mkdir(parents=True, exist_ok=True)
+            for asset in actors_dir.rglob("*.(bin|col)"):
+                copy2(asset, output_dir / "actors")
 
-    data_dir = assets_dir / "data"
-    if data_dir.is_dir():
-        (output_dir / "data").mkdir(parents=True, exist_ok=True)
-        for asset in data_dir.rglob("*.bhv"):
-            copy2(asset, output_dir / "data")
+        data_dir = assets_dir / "data"
+        if data_dir.is_dir():
+            (output_dir / "data").mkdir(parents=True, exist_ok=True)
+            for asset in data_dir.rglob("*.bhv"):
+                copy2(asset, output_dir / "data")
 
-    textures_dir = assets_dir / "textures"
-    if textures_dir.is_dir():
-        (output_dir / "textures").mkdir(parents=True, exist_ok=True)
-        for asset in textures_dir.rglob("*.png"):
-            make_tex(asset, output_dir / "textures")
-        for asset in textures_dir.rglob("*.tex"):
-            copy2(asset, output_dir / "textures")
+        textures_dir = assets_dir / "textures"
+        if textures_dir.is_dir():
+            (output_dir / "textures").mkdir(parents=True, exist_ok=True)
+            for asset in textures_dir.rglob("*.png"):
+                make_tex(asset, output_dir / "textures")
+            for asset in textures_dir.rglob("*.tex"):
+                copy2(asset, output_dir / "textures")
 
-    levels_dir = assets_dir / "levels"
-    if levels_dir.is_dir():
-        (output_dir / "levels").mkdir(parents=True, exist_ok=True)
-        for asset in levels_dir.rglob("*.lvl"):
-            copy2(asset, output_dir / "levels")
+        levels_dir = assets_dir / "levels"
+        if levels_dir.is_dir():
+            (output_dir / "levels").mkdir(parents=True, exist_ok=True)
+            for asset in levels_dir.rglob("*.lvl"):
+                copy2(asset, output_dir / "levels")
 
-    sounds_dir = assets_dir / "sound"
-    if sounds_dir.is_dir():
-        (output_dir / "sound").mkdir(parents=True, exist_ok=True)
-        for asset in sounds_dir.rglob("*.(m64|mp3|aiff|ogg)"):
-            copy2(asset, output_dir / "sound")
+        sounds_dir = assets_dir / "sound"
+        if sounds_dir.is_dir():
+            (output_dir / "sound").mkdir(parents=True, exist_ok=True)
+            for asset in sounds_dir.rglob("*.(m64|mp3|aiff|ogg)"):
+                copy2(asset, output_dir / "sound")
+    else:
+        if (assets_dir / "actors").is_dir():
+            copytree(assets_dir / "actors", output_dir / "actors")
+        if (assets_dir / "data").is_dir():
+            copytree(assets_dir / "data", output_dir / "data")
+        if (assets_dir / "textures").is_dir():
+            copytree(assets_dir / "textures", output_dir / "textures")
+        if (assets_dir / "levels").is_dir():
+            copytree(assets_dir / "levels", output_dir / "levels")
+        if (assets_dir / "sound").is_dir():
+            copytree(assets_dir / "sound", output_dir / "sound")
 
     if zip:
         root_dir = state.project_path / project.directories.output

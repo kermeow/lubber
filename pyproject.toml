@@ -1,6 +1,6 @@
 [project]
 name = "lubber"
-version = "0.1.1"
+version = "0.2.0"
 description = "Command line tool for building sm64coopdx mods"
 authors = [
     {name = "jayden",email = "46307433+kermeow@users.noreply.github.com"}
