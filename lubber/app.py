@@ -376,19 +376,21 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
         actors_dir = assets_dir / "actors"
         if actors_dir.is_dir():
             (output_dir / "actors").mkdir(parents=True, exist_ok=True)
-            for asset in actors_dir.rglob("*.(bin|col)"):
+            for asset in actors_dir.glob("*.bin"):
+                copy2(asset, output_dir / "actors")
+            for asset in actors_dir.glob("*.col"):
                 copy2(asset, output_dir / "actors")
 
         data_dir = assets_dir / "data"
         if data_dir.is_dir():
             (output_dir / "data").mkdir(parents=True, exist_ok=True)
-            for asset in data_dir.rglob("*.bhv"):
+            for asset in data_dir.glob("*.bhv"):
                 copy2(asset, output_dir / "data")
 
         textures_dir = assets_dir / "textures"
         if textures_dir.is_dir():
             (output_dir / "textures").mkdir(parents=True, exist_ok=True)
-            for asset in textures_dir.rglob("*.png"):
+            for asset in textures_dir.glob("*.png"):
                 make_tex(asset, output_dir / "textures")
             for asset in textures_dir.rglob("*.tex"):
                 copy2(asset, output_dir / "textures")
@@ -396,13 +398,19 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
         levels_dir = assets_dir / "levels"
         if levels_dir.is_dir():
             (output_dir / "levels").mkdir(parents=True, exist_ok=True)
-            for asset in levels_dir.rglob("*.lvl"):
+            for asset in levels_dir.glob("*.lvl"):
                 copy2(asset, output_dir / "levels")
 
         sounds_dir = assets_dir / "sound"
         if sounds_dir.is_dir():
             (output_dir / "sound").mkdir(parents=True, exist_ok=True)
-            for asset in sounds_dir.rglob("*.(m64|mp3|aiff|ogg)"):
+            for asset in sounds_dir.glob("*.m64"):
+                copy2(asset, output_dir / "sound")
+            for asset in sounds_dir.glob("*.mp3"):
+                copy2(asset, output_dir / "sound")
+            for asset in sounds_dir.glob("*.aiff"):
+                copy2(asset, output_dir / "sound")
+            for asset in sounds_dir.glob("*.ogg"):
                 copy2(asset, output_dir / "sound")
     else:
         if (assets_dir / "actors").is_dir():
