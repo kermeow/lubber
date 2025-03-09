@@ -2,6 +2,9 @@ import shutil
 import re
 import os
 import pwd
+from pathlib import Path
+from PIL import Image
+from io import BytesIO
 
 strict_mod_id_regex: re.Pattern = re.compile(r"[A-z0-9]")
 mod_id_regex: re.Pattern = re.compile(r"[A-z0-9\.\-_]+")
@@ -25,5 +28,33 @@ def validate_mod_id(id: str) -> bool:
 def suggest_mod_id(id: str) -> str:
     return inverse_mod_id_regex.subn("-", id)[0].strip(".-_")
 
+
 def get_username() -> str:
     return pwd.getpwuid(os.getuid()).pw_name
+
+
+def make_tex(original: Path, to: Path):
+    img_name = original.stem
+
+    out_bytes = BytesIO()
+
+    out_bytes.write(bytes([0x02]))
+    out_bytes.write(bytes([len(img_name)]))
+    out_bytes.write(bytes(img_name, "ascii"))
+
+    png_bytes = original.read_bytes()
+    converted_size = len(png_bytes)
+    out_bytes.write(
+        bytes(
+            [
+                converted_size & 0xFF,
+                (converted_size >> 8) & 0xFF,
+                (converted_size >> 16) & 0xFF,
+                (converted_size >> 24) & 0xFF,
+            ]
+        ),
+    )
+    out_bytes.write(png_bytes)
+
+    out_path = to / (img_name + ".tex")
+    out_path.write_bytes(out_bytes.getbuffer())

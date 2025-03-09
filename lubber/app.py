@@ -19,7 +19,7 @@ from lubber.models.project import LockedDependency, LockFile, Project
 from lubber.models.state import State
 from lubber.resolver import install, resolve
 from lubber.resolver.types import Dependency
-from lubber.utils import get_username, is_exe, suggest_mod_id, validate_mod_id
+from lubber.utils import get_username, is_exe, suggest_mod_id, validate_mod_id, make_tex
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -303,7 +303,8 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
 
     ordered_lua = []
     for path in src_dir.rglob("*.lua", case_sensitive=False):
-        ordered_lua.append(path.relative_to(src_dir))
+        rel_path = path.relative_to(src_dir)
+        ordered_lua.append(rel_path)
 
     ordered_lua = sort(ordered_lua)
 
@@ -357,6 +358,39 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
                 short_counter += 1
             out_file = output_dir / out_name
             copy2(compiled_file, out_file)
+
+    # Compile assets
+    assets_dir = state.project_path / project.directories.assets
+
+    actors_dir = assets_dir / "actors"
+    if actors_dir.is_dir():
+        (output_dir / "actors").mkdir(parents=True, exist_ok=True)
+        for asset in actors_dir.rglob("*.(bin|col)"):
+            copy2(asset, output_dir / "actors")
+
+    data_dir = assets_dir / "data"
+    if data_dir.is_dir():
+        (output_dir / "data").mkdir(parents=True, exist_ok=True)
+        for asset in data_dir.rglob("*.bhv"):
+            copy2(asset, output_dir / "data")
+
+    textures_dir = assets_dir / "textures"
+    if textures_dir.is_dir():
+        (output_dir / "textures").mkdir(parents=True, exist_ok=True)
+        for asset in textures_dir.rglob("*.png"):
+            make_tex(asset, output_dir / "textures")
+
+    levels_dir = assets_dir / "levels"
+    if levels_dir.is_dir():
+        (output_dir / "levels").mkdir(parents=True, exist_ok=True)
+        for asset in levels_dir.rglob("*.lvl"):
+            copy2(asset, output_dir / "levels")
+
+    sounds_dir = assets_dir / "sound"
+    if sounds_dir.is_dir():
+        (output_dir / "sound").mkdir(parents=True, exist_ok=True)
+        for asset in sounds_dir.rglob("*.(m64|mp3|aiff|ogg)"):
+            copy2(asset, output_dir / "sound")
 
     if zip:
         root_dir = state.project_path / project.directories.output

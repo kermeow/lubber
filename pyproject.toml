@@ -15,7 +15,7 @@ dependencies = [
     "fancy-dataclass (>=0.8.1,<0.9.0)",
     "pygithub (>=2.6.1,<3.0.0)",
     "requests (>=2.32.3,<3.0.0)",
-    "numpy (>=2.2.3,<3.0.0)"
+    "numpy (>=2.2.3,<3.0.0)",
 ]
 
 [project.scripts]
