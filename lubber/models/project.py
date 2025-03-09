@@ -36,3 +36,14 @@ class Project(ConfigDataclass, TOMLDataclass, suppress_defaults=True):
     dependencies: DependencyList = field(default_factory=dict)
     directories: ProjectDirectories = field(default_factory=ProjectDirectories)
     build: ProjectBuildOptions = field(default_factory=ProjectBuildOptions)
+
+
+@dataclass
+class LockedDependency(TOMLDataclass):
+    version: str
+    provided_by: str
+
+
+@dataclass
+class LockFile(ConfigDataclass, TOMLDataclass):
+    dependencies: dict[str, LockedDependency] = field(default_factory=dict)
