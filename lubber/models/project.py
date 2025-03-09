@@ -28,6 +28,7 @@ class ProjectDirectories(TOMLDataclass):
 @dataclass
 class ProjectBuildOptions(TOMLDataclass):
     output_single_file: bool = False
+    shorten_names: bool = True
 
 
 @dataclass
@@ -46,4 +47,5 @@ class LockedDependency(TOMLDataclass):
 
 @dataclass
 class LockFile(ConfigDataclass, TOMLDataclass):
+    project_hash: str = None
     dependencies: dict[str, LockedDependency] = field(default_factory=dict)

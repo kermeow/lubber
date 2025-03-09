@@ -1,16 +1,18 @@
 import importlib.resources as resources
 import subprocess
 from pathlib import Path
+from shutil import rmtree
 
+from hashlib import md5
 import typer
 from rich import print
-from rich.prompt import Confirm, Prompt
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm, Prompt
 from semver import Version
 from typing_extensions import Annotated
 
 from lubber.models.config import GlobalConfig
-from lubber.models.project import Project, LockFile, LockedDependency
+from lubber.models.project import LockedDependency, LockFile, Project
 from lubber.models.state import State
 from lubber.resolver import install, resolve
 from lubber.resolver.types import Dependency
@@ -144,7 +146,24 @@ def restore(ctx: typer.Context) -> bool:
 
     project: Project = Project.load_config(project_file)
 
-    print(f"[blue]Restoring project in {state.project_path_relative()}...")
+    print(f"[blue]Restoring project in '{state.project_path_relative()}'...")
+
+    cache_dir = state.project_path / ".lubber"
+    libs_dir = cache_dir / "libs"
+    libs_dir.mkdir(parents=True, exist_ok=True)
+
+    lockfile = LockFile()
+
+    lockfile_file = cache_dir / "lock.toml"
+    if lockfile_file.is_file():
+        lockfile = LockFile.load_config(lockfile_file)
+
+    project_hash = md5(project_file.read_bytes()).hexdigest()
+    if lockfile.project_hash == project_hash:
+        print("Nothing has changed.")
+        return True
+
+    lockfile.project_hash = project_hash
 
     problems: int = 0
 
@@ -172,16 +191,6 @@ def restore(ctx: typer.Context) -> bool:
     # Resolve dependencies
     print("[blue]Resolving dependencies...")
 
-    cache_dir = state.project_path / ".lubber"
-    libs_dir = cache_dir / "libs"
-    libs_dir.mkdir(parents=True, exist_ok=True)
-
-    lockfile = LockFile()
-
-    lockfile_file = cache_dir / "lock.toml"
-    if lockfile_file.is_file():
-        lockfile = LockFile.load_config(lockfile_file)
-
     to_install: list[Dependency] = []
     to_remove: list[str] = []
 
@@ -207,17 +216,6 @@ def restore(ctx: typer.Context) -> bool:
         TextColumn("[progress.description]{task.description}"),
         transient=False,
     ) as progress:
-        from shutil import rmtree
-
-        for lock_name in to_remove:
-            lock = lockfile.dependencies.pop(lock_name)
-            path = libs_dir / f"{lock_name}@{lock.version}"
-            if not path.is_dir():
-                continue
-            task = progress.add_task(f"Remove {lock_name}@{lock.version}", total=1)
-            rmtree(path, ignore_errors=True)
-            progress.advance(task)
-
         for dep_name in dependencies:
             dep = dependencies[dep_name]
             lockfile.dependencies[dep_name] = LockedDependency(
@@ -230,8 +228,16 @@ def restore(ctx: typer.Context) -> bool:
             install(dep, libs_dir / f"{dep.name}@{str(dep_version)}")
             progress.advance(task)
 
-    lockfile.save(lockfile_file)
+        for lock_name in to_remove:
+            lock = lockfile.dependencies.pop(lock_name)
+            path = libs_dir / f"{lock_name}@{lock.version}"
+            if not path.is_dir():
+                continue
+            task = progress.add_task(f"Remove {lock_name}@{lock.version}", total=1)
+            rmtree(path, ignore_errors=True)
+            progress.advance(task)
 
+    lockfile.save(lockfile_file)
     project.save(project_file)
     return True
 
