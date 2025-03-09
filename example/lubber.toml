@@ -1,0 +1,8 @@
+[mod]
+name = "example"
+version = "0.1.0"
+description = ""
+authors = ["jayden"]
+
+[dependencies]
+sm64coopdx = "^1.0.0"
