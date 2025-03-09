@@ -1,13 +1,13 @@
 [project]
 name = "lubber"
-version = "0.1.0"
+version = "0.1.1"
 description = "Command line tool for building sm64coopdx mods"
 authors = [
     {name = "jayden",email = "46307433+kermeow@users.noreply.github.com"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "typer (>=0.15.2,<0.16.0)",
     "rich (>=13.9.4,<14.0.0)",
@@ -17,6 +17,16 @@ dependencies = [
     "requests (>=2.32.3,<3.0.0)",
     "numpy (>=2.2.3,<3.0.0)",
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Build Tools"
+]
+
+[project.urls]
+Repository = "https://github.com/kermeow/lubber.git"
+Issues = "https://github.com/kermeow/lubber/issues"
 
 [project.scripts]
 lubber = "lubber.app:app"
