@@ -1,0 +1,6 @@
+# lubber
+
+.lubber/
+dist/
+*.luac
+*.zip
