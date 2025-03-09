@@ -1,7 +1,7 @@
 import importlib.resources as resources
 import subprocess
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, make_archive, copy2
 
 from hashlib import md5
 import typer
@@ -11,6 +11,8 @@ from rich.prompt import Confirm, Prompt
 from semver import Version
 from typing_extensions import Annotated
 import time
+from numpy import emath, sort
+from math import floor
 
 from lubber.models.config import GlobalConfig
 from lubber.models.project import LockedDependency, LockFile, Project
@@ -255,10 +257,127 @@ def restore(ctx: typer.Context) -> bool:
 
 
 @app.command()
-def build(ctx: typer.Context):
+def build(ctx: typer.Context, release: bool = False, zip: bool = False):
     """
     Builds the mod.
     """
+
+    if not restore(ctx):
+        raise Exception(
+            "Project restore failed. All issues must be fixed before building."
+        )
+
+    project: Project = Project.get_config()
+
+    if not is_exe(state.config.paths.lua_exe):
+        raise Exception("Couldn't find lua executable.")
+    if not is_exe(state.config.paths.luac_exe):
+        raise Exception("Couldn't find luac executable.")
+
+    print(f"[blue]Building '{project.mod.name}'...")
+
+    begin_at = time.clock_gettime_ns(time.CLOCK_REALTIME)
+
+    cache_dir = state.project_path / ".lubber"
+    obj_dir = cache_dir / "obj"
+    obj_dir.mkdir(parents=True, exist_ok=True)
+
+    # Empty output directory
+    output_dir = state.project_path / project.directories.output / project.mod.name
+    if output_dir.is_dir():
+        for path in output_dir.iterdir():
+            if path.is_file():
+                path.unlink(missing_ok=True)
+            elif path.is_dir():
+                rmtree(path, ignore_errors=True)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Build lua source files
+    src_dir = state.project_path / project.directories.source
+    src_dir.mkdir(parents=True, exist_ok=True)
+
+    luac_flags = []
+    if release:
+        luac_flags.append("-s")
+
+    ordered_lua = []
+    for path in src_dir.rglob("*.lua", case_sensitive=False):
+        ordered_lua.append(path.relative_to(src_dir))
+
+    ordered_lua = sort(ordered_lua)
+
+    compiled_lua = []
+    for rel_path in ordered_lua:
+        in_file = rel_path
+        out_file = obj_dir / (str(rel_path).replace("/", ".") + "c")
+        retcode = subprocess.call(
+            [
+                state.config.paths.luac_exe,
+                *luac_flags,
+                "-o",
+                str(out_file),
+                str(in_file),
+            ],
+            cwd=src_dir,
+        )
+        if not retcode == 0:
+            print(
+                f"[red]An error occurred compiling '{in_file}'. Trying to finish anyway..."
+            )
+
+        compiled_lua.append(out_file)
+
+    if project.build.output_single_file:
+        single_file_name = "main64.luac"
+        if project.build.shorten_names:
+            single_file_name = "64.luac"
+        out_file = output_dir / single_file_name
+        retcode = subprocess.call(
+            [
+                state.config.paths.luac_exe,
+                *luac_flags,
+                "-o",
+                str(out_file),
+                *compiled_lua,
+            ],
+            cwd=src_dir,
+        )
+    else:
+        short_counter = 0
+        num_chars = floor(emath.logn(26, len(compiled_lua))) + 1
+        for compiled_file in compiled_lua:
+            out_name = compiled_file.relative_to(obj_dir)
+            if project.build.shorten_names:
+                out_name = ""
+                for i in range(num_chars - 1, -1, -1):
+                    char_code = floor(short_counter / (26**i)) % 26
+                    out_name += chr(ord("a") + round(char_code))
+                out_name += ".luac"
+                short_counter += 1
+            out_file = output_dir / out_name
+            copy2(compiled_file, out_file)
+
+    if zip:
+        root_dir = state.project_path / project.directories.output
+        make_archive(
+            project.mod.name,
+            "zip",
+            root_dir=root_dir,
+            base_dir=output_dir.relative_to(root_dir),
+        )
+        zip_file = f"{project.mod.name}.zip"
+        zip_output = root_dir / zip_file
+        if zip_output.is_file():
+            zip_output.unlink(missing_ok=True)
+        Path(zip_file).rename(zip_output)
+
+    finish_at = time.clock_gettime_ns(time.CLOCK_REALTIME)
+
+    time_taken = finish_at - begin_at
+    time_taken_s = round(time_taken / 1_000_000) / 1000
+
+    print(f"[blue]'{project.mod.name}' built in {time_taken_s}s.")
 
 
 @app.command()

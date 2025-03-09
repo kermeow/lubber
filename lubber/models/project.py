@@ -28,7 +28,7 @@ class ProjectDirectories(TOMLDataclass):
 @dataclass
 class ProjectBuildOptions(TOMLDataclass):
     output_single_file: bool = False
-    shorten_names: bool = False
+    shorten_names: bool = True
 
 
 @dataclass
