@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
-from semver import Version
 
 from fancy_dataclass import ConfigDataclass, TOMLDataclass
+from semver import Version
 
 DependencyList = Dict[str, str]
 

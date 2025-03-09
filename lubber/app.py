@@ -1,25 +1,25 @@
 import importlib.resources as resources
 import subprocess
-from pathlib import Path
-from shutil import rmtree, make_archive, copy2
-
+import time
 from hashlib import md5
+from math import floor
+from pathlib import Path
+from shutil import copy2, make_archive, rmtree
+
 import typer
+from numpy import emath, sort
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from semver import Version
 from typing_extensions import Annotated
-import time
-from numpy import emath, sort
-from math import floor
 
 from lubber.models.config import GlobalConfig
 from lubber.models.project import LockedDependency, LockFile, Project
 from lubber.models.state import State
 from lubber.resolver import install, resolve
 from lubber.resolver.types import Dependency
-from lubber.utils import get_username, is_exe, suggest_mod_id, validate_mod_id, make_tex
+from lubber.utils import get_username, is_exe, make_tex, suggest_mod_id, validate_mod_id
 
 app = typer.Typer(
     no_args_is_help=True,

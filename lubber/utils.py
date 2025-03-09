@@ -1,10 +1,9 @@
-import shutil
-import re
 import os
 import pwd
-from pathlib import Path
-from PIL import Image
+import re
+import shutil
 from io import BytesIO
+from pathlib import Path
 
 strict_mod_id_regex: re.Pattern = re.compile(r"[A-z0-9]")
 mod_id_regex: re.Pattern = re.compile(r"[A-z0-9\.\-_]+")

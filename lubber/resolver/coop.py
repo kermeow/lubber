@@ -3,7 +3,7 @@ from typing import Optional
 
 import requests
 import typer
-from github import Github, Auth
+from github import Auth, Github
 from semver import Version
 
 from lubber.resolver.types import Dependency, Resolver
