@@ -246,7 +246,7 @@ def restore(ctx: typer.Context) -> bool:
             progress.advance(task)
 
     lockfile.save(lockfile_file)
-    project.save(project_file)
+    # project.save(project_file)
 
     finish_at = time.clock_gettime_ns(time.CLOCK_REALTIME)
 
