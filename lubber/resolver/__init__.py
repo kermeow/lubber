@@ -44,9 +44,9 @@ def _resolve(full_name: str, version_range: str, resolved: dict[str, Dependency]
 
     if not was_resolved:
         if set_resolver is not None:
-            resolver = resolvers[set_resolver]
-            if resolver is None:
+            if set_resolver not in resolvers:
                 raise Exception(f"Unknown package source '{set_resolver}'.")
+            resolver = resolvers[set_resolver]
             dependency = resolver.resolve(name, version_range)
             if dependency is None:
                 raise Exception(f"Dependency '{name} ({version_range})' doesn't exist in '{set_resolver}'.")
