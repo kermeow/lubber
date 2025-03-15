@@ -9,7 +9,7 @@ from semver import Version
 @dataclass
 class MetaDependency:
     name: str
-    version_range: str
+    version_ranges: list[str]
 
 
 @dataclass

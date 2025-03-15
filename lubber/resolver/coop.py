@@ -29,7 +29,7 @@ class CoopResolver(Resolver):
         versions.sort(reverse=True)
 
         return Dependency(
-            name="sm64coopdx", version_range=version_range, versions=versions
+            name="sm64coopdx", version_ranges=[version_range], versions=versions
         )
 
     def install(self, dependency: Dependency, to: Path) -> bool:

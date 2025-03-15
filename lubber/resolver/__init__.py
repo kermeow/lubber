@@ -1,4 +1,7 @@
+import semver
+
 from pathlib import Path
+from rich import print
 
 from lubber.models.project import DependencyList
 from lubber.resolver.coop import CoopResolver
@@ -18,26 +21,52 @@ def resolve(root: str, dependencies: DependencyList) -> dict[str, Dependency]:
     return resolved
 
 
-def _resolve(name: str, version_range: str, resolved: dict[str, Dependency]):
+def _resolve(full_name: str, version_range: str, resolved: dict[str, Dependency]):
+    name_splits = full_name.split(":", 2)
+    name: str = name_splits[-1]
+    set_resolver: str = None if len(name_splits) < 2 else name_splits[0] 
+
     version_range = version_range.replace("^", ">=")
-    dependency: Dependency = None
-    for id in resolvers:
-        resolver = resolvers[id]
-        dependency = resolver.resolve(name, version_range)
-        if dependency is not None:
-            dependency.provided_by = id
-            break
+    dependency: Dependency = resolved.get(name, default=None)
+
+    was_resolved: bool = dependency is not None
+
+    if was_resolved:
+        if set_resolver != dependency.provided_by:
+            raise Exception(f"Dependency {name} from {dependency.provided_by} is not compatible with {name} from {set_resolver}.")
+
+        resolved_versions = dependency.versions.copy()
+        for version in resolved_versions:
+            if not version.match(version_range):
+                dependency.versions.remove(version)
+            
+        dependency.version_ranges.append(version_range)
+
+    if not was_resolved:
+        for id in resolvers:
+            resolver = resolvers[id]
+            dependency = resolver.resolve(name, version_range)
+            if dependency is not None:
+                dependency.provided_by = id
+                break
+
     if len(dependency.versions) == 0:
         raise Exception(
-            f"Dependency '{name}' ({version_range}) of 'f{dependency_stack[-1]}' was resolved, but has no suitable version."
+            f"Dependency '{name}' of '{dependency_stack[-1]}' was found, but no version matched {version_range}." if not was_resolved else
+            f"Dependency '{name} ({version_range})' of '{dependency_stack[-1]}' is not compatible with '{name} ({dependency.version_ranges[-2]})'."
         )
     if dependency is None:
         raise Exception(
-            f"Dependency '{name}' ({version_range}) of 'f{dependency_stack[-1]}' couldn't be resolved."
+            f"Dependency '{name}' of '{dependency_stack[-1]}' couldn't be found."
         )
+    
+    dependency.needed_by.append(dependency_stack[-1])
+
     if len(dependency.relies_on) > 0:
         dependency_stack.append(dependency.name)
         for dependency2 in dependency.relies_on:
+            if dependency2.name in dependency_stack:
+                raise Exception(f"Cyclic dependency! ({*dependency_stack})")
             _resolve(dependency2.name, dependency2.version_range, resolved)
         dependency_stack.pop()
     resolved[name] = dependency
