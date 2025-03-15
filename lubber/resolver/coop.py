@@ -2,18 +2,12 @@ from pathlib import Path
 from typing import Optional
 
 import requests
-import typer
-from github import Auth, Github
+from github import Github
 from semver import Version
 
 from lubber.resolver.types import Dependency, Resolver
 
 github = Github()
-pat_file = Path(typer.get_app_dir("lubber")) / "pat"
-if pat_file.is_file():
-    pat_file_content = pat_file.read_text()
-    pat = pat_file_content.splitlines(False)
-    github = Github(auth=Auth.Login(pat[0], pat[1]))
 
 
 class CoopResolver(Resolver):

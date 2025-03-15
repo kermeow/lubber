@@ -305,20 +305,18 @@ def build(ctx: typer.Context, release: bool = False, zip: bool = False):
     print(f"[blue]'{project.mod.name}' built in {time_taken_s}s.")
 
 
-@app.command()
-def auth(ctx: typer.Context):
-    """
-    Authenticate lubber with a GitHub PAT. Use this if you are getting rate limited!
-    """
-    username = Prompt.ask("GitHub username")
-    pat = Prompt.ask("Personal access token", password=True)
-    pat_file = state.app_dir / "pat"
-    pat_file.write_text(f"{username}\n{pat}")
+def remove_pat(app_dir: Path):
+    pat_file = app_dir / "pat"
+    if pat_file.is_file():
+        pat_file.unlink(missing_ok=True)
 
 
 @app.callback()
 def main(project: Path = typer.Option(None, help="Specify the path of the project.")):
     state.app_dir = Path(typer.get_app_dir("lubber"))
+
+    # ^0.3.0
+    remove_pat(state.app_dir)
 
     config_path: Path = Path(state.app_dir) / "config.toml"
     if config_path.is_file():
