@@ -217,7 +217,7 @@ def restore(ctx: typer.Context) -> bool:
             to_install.append(dependencies[lock_name])
 
     # Install resolved dependencies
-    print("[blue]Installing dependencies...")
+    print("[blue]Restoring dependencies...")
 
     with Progress(
         SpinnerColumn(finished_text="[green]✓[/green]"),
