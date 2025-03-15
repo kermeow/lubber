@@ -32,28 +32,28 @@ def get_username() -> str:
     return pwd.getpwuid(os.getuid()).pw_name
 
 
-def make_tex(original: Path, to: Path):
-    img_name = original.stem
+# def make_tex(original: Path, to: Path):
+#     img_name = original.stem
 
-    out_bytes = BytesIO()
+#     out_bytes = BytesIO()
 
-    out_bytes.write(bytes([0x02]))
-    out_bytes.write(bytes([len(img_name)]))
-    out_bytes.write(bytes(img_name, "ascii"))
+#     out_bytes.write(bytes([0x02]))
+#     out_bytes.write(bytes([len(img_name)]))
+#     out_bytes.write(bytes(img_name, "ascii"))
 
-    png_bytes = original.read_bytes()
-    converted_size = len(png_bytes)
-    out_bytes.write(
-        bytes(
-            [
-                converted_size & 0xFF,
-                (converted_size >> 8) & 0xFF,
-                (converted_size >> 16) & 0xFF,
-                (converted_size >> 24) & 0xFF,
-            ]
-        ),
-    )
-    out_bytes.write(png_bytes)
+#     png_bytes = original.read_bytes()
+#     converted_size = len(png_bytes)
+#     out_bytes.write(
+#         bytes(
+#             [
+#                 converted_size & 0xFF,
+#                 (converted_size >> 8) & 0xFF,
+#                 (converted_size >> 16) & 0xFF,
+#                 (converted_size >> 24) & 0xFF,
+#             ]
+#         ),
+#     )
+#     out_bytes.write(png_bytes)
 
-    out_path = to / (img_name + ".tex")
-    out_path.write_bytes(out_bytes.getbuffer())
+#     out_path = to / (img_name + ".tex")
+#     out_path.write_bytes(out_bytes.getbuffer())
