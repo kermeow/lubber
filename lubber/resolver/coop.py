@@ -5,7 +5,7 @@ import requests
 from github import Github
 from semver import Version
 
-from lubber.resolver.types import Dependency, Resolver
+from lubber.resolver.dependencies import Dependency, Resolver
 
 github = Github()
 

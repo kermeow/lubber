@@ -5,7 +5,7 @@ from rich import print
 
 from lubber.models.project import DependencyList
 from lubber.resolver.coop import CoopResolver
-from lubber.resolver.types import Dependency, Resolver
+from lubber.resolver.dependencies import Dependency, Resolver
 
 resolvers: dict[str, Resolver] = {"coop": CoopResolver()}
 
@@ -43,6 +43,14 @@ def _resolve(full_name: str, version_range: str, resolved: dict[str, Dependency]
         dependency.version_ranges.append(version_range)
 
     if not was_resolved:
+        if set_resolver is not None:
+            resolver = resolvers[set_resolver]
+            if resolver is None:
+                raise Exception(f"Unknown package source '{set_resolver}'.")
+            dependency = resolver.resolve(name, version_range)
+            if dependency is None:
+                raise Exception(f"Dependency '{name} ({version_range})' doesn't exist in '{set_resolver}'.")
+            dependency.provided_by = set_resolver
         for id in resolvers:
             resolver = resolvers[id]
             dependency = resolver.resolve(name, version_range)

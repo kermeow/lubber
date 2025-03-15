@@ -13,12 +13,11 @@ class MetaDependency:
 
 
 @dataclass
-class Dependency(MetaDependency, ABC):
+class Dependency(MetaDependency):
     versions: list[Version] = field(default_factory=list)
     provided_by: str = None
     needed_by: list[MetaDependency] = field(default_factory=list)
     relies_on: list[MetaDependency] = field(default_factory=list)
-
 
 class Resolver(ABC):
     @abstractmethod
